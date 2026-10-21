@@ -365,8 +365,7 @@ async function retry() {
 function onKey(event) {
   const target = event.target
   if (target instanceof HTMLElement && (/INPUT|TEXTAREA|SELECT/.test(target.tagName) || target.isContentEditable)) return
-  if (event.key === '/') { event.preventDefault(); cli.value?.focus() }
-  else if (event.key === 'Escape') onEscape()
+  if (event.key === 'Escape') onEscape()
 }
 
 const onRefresh = async () => {

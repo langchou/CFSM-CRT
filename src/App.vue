@@ -2,20 +2,16 @@
   <div>
     <TmuxBar
       :host="host"
-      :groups="groups"
-      :group="state.group"
-      :view="viewMode"
+      :query="state.query"
       :total="state.servers.length"
       :error="state.error"
       :palette="state.palette"
       :allow-switch="options.allow_switch"
       :show-admin="options.show_admin"
       :authed="authed"
-      :node-label="nodeLabel"
       :now="state.tick"
       @home="goHome"
-      @group="onGroup"
-      @view="onView"
+      @search="onSearch"
       @palette="onPalette"
       @settings="openSettings"
     />
@@ -55,7 +51,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TmuxBar from './components/TmuxBar.vue'
 import NoticeBar from './components/NoticeBar.vue'
@@ -65,8 +61,8 @@ import TurnstileGate from './components/TurnstileGate.vue'
 import LiveTimeoutModal from './components/LiveTimeoutModal.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 import {
-  state, boot, startLive, stopLive, refreshServers, ensureConfig, resumeLive, findServer,
-  setGroup, setView, setPalette, currentView
+  state, boot, startLive, stopLive, refreshServers, ensureConfig, resumeLive,
+  setGroup, setQuery, setPalette
 } from './store'
 import { getJwt } from './utils/http'
 import { slug } from './utils/format'
@@ -86,36 +82,10 @@ const booting = computed(() => !state.needsTurnstile && (
   state.pageLoading
 ))
 const host = computed(() => slug(options.value.hostname) || slug(state.config?.site_title) || 'status')
-const viewMode = computed(() => currentView())
-
-const groups = computed(() => {
-  const set = new Set()
-  for (const server of state.servers) {
-    const group = String(server.server_group || '').trim()
-    if (group) set.add(group)
-  }
-  return [...set]
-})
-
-const nodeLabel = computed(() => {
-  if (route.name !== 'Server') return ''
-  const id = String(route.params.id || '')
-  const server = findServer(id, String(route.query.b || '')) || (state.current?.id === id ? state.current : null)
-  if (!server) return id
-  return String(server.name || slug(server.name) || id).slice(0, 28)
-})
-
-watch(groups, (list) => {
-  if (state.group !== null && state.group !== '' && !list.includes(state.group)) setGroup(null)
-})
-
-function onGroup(key) {
-  setGroup(key)
+function onSearch(value) {
+  setGroup(null)
+  setQuery(value)
   if (!isHome.value) router.push('/')
-}
-
-function onView(next) {
-  setView(next)
 }
 
 function onPalette(id) {
@@ -124,6 +94,7 @@ function onPalette(id) {
 
 function goHome() {
   setGroup(null)
+  setQuery('')
   if (!isHome.value) router.push('/')
 }
 
