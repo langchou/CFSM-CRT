@@ -36,6 +36,7 @@
 <script setup>
 import { computed } from 'vue'
 import { PING_FIELDS } from '../utils/constants'
+import { expiryInfo } from '../utils/expiry'
 import {
   clamp, col, dur, fit, isOnline, level, mib, offlineFor, pctOf, pingLevel, pingText, probeValue,
   textWidth, trafficPercent
@@ -46,6 +47,7 @@ const props = defineProps({
   groups: { type: Array, default: () => [] },
   sort: { type: String, default: '' },
   showPing: { type: Boolean, default: true },
+  showExpire: { type: Boolean, default: true },
   now: { type: Number, default: Date.now() }
 })
 
@@ -109,7 +111,11 @@ const cols = computed(() => {
       const ago = offlineFor(s, Date.now())
       return ago == null ? '-' : dur(ago)
     } },
-    props.showPing ? { k: 'ping', t: 'PING', w: 5, r: 1, v: pingCell, cls: (s) => pingLevel(probeValue(s.ping_ct)) } : null
+    props.showPing ? { k: 'ping', t: 'PING', w: 5, r: 1, v: pingCell, cls: (s) => pingLevel(probeValue(s.ping_ct)) } : null,
+    props.showExpire ? {
+      t: 'EXPIRES', w: 11, v: (s) => expiryInfo(s.expire_date, props.now)?.short || '-',
+      cls: (s) => expiryInfo(s.expire_date, props.now)?.level || 'dim'
+    } : null
   ].filter(Boolean)
 })
 

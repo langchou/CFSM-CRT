@@ -42,6 +42,9 @@
         <div class="ln err">ssh: connect to host {{ host }} port 22: Connection timed out</div>
         <div class="ln dim">{{ offlineText }}</div>
       </template>
+      <div v-if="expiry && config.show_expire !== false" class="ln wrap">
+        <span class="tk">Expires: </span><span :class="expiry.level">{{ expiry.text }}</span>
+      </div>
     </div>
   </article>
 </template>
@@ -50,6 +53,7 @@
 import { computed } from 'vue'
 import Spinner from './Spinner.vue'
 import { PING_FIELDS } from '../utils/constants'
+import { expiryInfo } from '../utils/expiry'
 import {
   clamp, dur, hsize, isOnline, level, mib, offlineFor, parseLoad, pctOf,
   pingLevel, pingText, probeValue, slug, trafficLimitBytes, trafficPercent, trafficUsed, uptimeSeconds, uptimeShort
@@ -67,6 +71,7 @@ defineEmits(['open'])
 const online = computed(() => isOnline(props.server, props.now))
 const host = computed(() => slug(props.server.name) || 'node')
 const regionLabel = computed(() => props.server.region || props.server.server_group || '')
+const expiry = computed(() => expiryInfo(props.server.expire_date, props.now))
 
 const hasMetrics = computed(() => online.value && Number.isFinite(Number(props.server.cpu)) && props.server.last_updated != null)
 

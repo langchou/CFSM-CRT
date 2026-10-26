@@ -160,6 +160,7 @@ import { state, findServer, ensureConfig, setCurrent } from '../store'
 import { getApiBases } from '../utils/config'
 import { fetchHistory, fetchServerDetail } from '../utils/api'
 import { createLiveSocket } from '../utils/live'
+import { expiryInfo } from '../utils/expiry'
 import { DEFAULT_RANGE, PING_FIELDS, PUBLIC_RANGES, RANGES, REPORT_FIELDS, STORAGE } from '../utils/constants'
 import {
   clockShort, col, dfSize, hasDiskIo, iec, iecRate, isOnline, level, mib, normalizeTs,
@@ -221,14 +222,7 @@ const uptimeValue = computed(() => {
 })
 const loadText = computed(() => parseLoad(server.value?.load_avg).map((v) => v.toFixed(2)).join(', '))
 
-const expireText = computed(() => {
-  const raw = String(server.value?.expire_date || '').trim()
-  if (!raw) return ''
-  const date = new Date(raw)
-  if (Number.isNaN(date.getTime())) return raw
-  const days = Math.ceil((date.getTime() - state.tick) / 86400000)
-  return raw.slice(0, 10) + (days >= 0 ? ' (' + days + 'd left)' : ' (expired)')
-})
+const expireText = computed(() => expiryInfo(server.value?.expire_date, state.tick)?.text || '')
 
 const quota = computed(() => {
   const limit = trafficLimitBytes(server.value)

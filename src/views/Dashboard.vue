@@ -41,6 +41,7 @@
           :groups="groups"
           :sort="state.sort"
           :show-ping="options.show_ping"
+          :show-expire="state.config?.show_expire !== false"
           :now="state.tick"
           @open="open"
           @sort="onSort"
